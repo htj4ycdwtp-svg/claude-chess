@@ -27,7 +27,7 @@ Work in this repo should actively support learning in these areas, not just prod
 - **Real-time layer:** Flask-SocketIO, using Socket.IO rooms so each match is isolated from every other match
 - **Frontend:** HTML and CSS, with minimal vanilla JavaScript (no React, no frontend framework)
 - **Testing:** pytest
-- **Deployment target:** Render, via `gunicorn` + the `eventlet` worker class (Flask-SocketIO's dev server isn't production-suitable)
+- **Deployment target:** Azure Web App, via `gunicorn` + the `eventlet` worker class (Flask-SocketIO's dev server isn't production-suitable), deployed by the GitHub Actions workflow in `.github/workflows/python-ci.yml`
 - No external chess library (e.g. `python-chess`) — all chess rules are implemented by hand. No computer opponent.
 - No database — active games live in server memory for this version (see "Known limitations" in `README.md`).
 
@@ -134,9 +134,9 @@ pytest -v                                # verbose output
 
 ## Deployment Notes
 
-Deployed to Render via `Procfile` / `render.yaml`, both already in the repo. See `README.md` for exact settings.
+Deployed to an Azure Web App (name: `claude-chess`) via the GitHub Actions workflow in `.github/workflows/python-ci.yml`, which runs on every push and uses `azure/webapps-deploy` with a publish profile stored as the `AZURE_WEBAPP_PUBLISH_PROFILE` GitHub Actions secret.
 
-- Runs under `gunicorn --worker-class eventlet -w 1` — **exactly one worker**, not a preference but a hard requirement: game state lives in one process's memory (`GameManager`), so more than one worker/instance would split games across processes that don't share state.
-- `SECRET_KEY` must be set via environment variable in production (signs the session cookie that carries game/color identity) — falls back to a dev-only constant otherwise.
-- `PORT` is read from the environment, not hardcoded.
-- `eventlet` is in upstream maintenance/bugfix mode; it still works correctly here. If it's ever dropped, `gevent` is the drop-in alternative (swap it in `requirements.txt`, `Procfile`, `render.yaml`, and `async_mode` in `server/app.py`).
+- The Azure Web App's **Startup Command** (Configuration → General settings in the Azure portal) must be set to `gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT server.app:app` — **exactly one worker**, not a preference but a hard requirement: game state lives in one process's memory (`GameManager`), so more than one worker/instance would split games across processes that don't share state.
+- `SECRET_KEY` must be set as an Azure Web App application setting (environment variable) in production (signs the session cookie that carries game/color identity) — falls back to a dev-only constant otherwise.
+- `PORT` is provided automatically by Azure App Service and read from the environment, not hardcoded.
+- `eventlet` is in upstream maintenance/bugfix mode; it still works correctly here. If it's ever dropped, `gevent` is the drop-in alternative (swap it in `requirements.txt`, the Azure startup command, and `async_mode` in `server/app.py`).
