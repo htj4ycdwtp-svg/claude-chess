@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Online Chess</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <main id="lobby" class="panel">
+    <h1>Online Chess</h1>
+    <div class="lobby-actions">
+      <button id="create-btn" type="button">Create Game</button>
+      <form id="join-form">
+        <input id="join-code" maxlength="4" placeholder="Game code" autocomplete="off">
+        <button type="submit">Join Game</button>
+      </form>
+    </div>
+    <p id="lobby-message" class="message"></p>
+  </main>
+
+  <main id="game" class="panel hidden">
+    <div class="game-header">
+      <span id="game-code-display"></span>
+      <span id="opponent-display"></span>
+    </div>
+    <div id="board" class="board"></div>
+    <p id="status-display" class="status"></p>
+    <p id="game-message" class="message"></p>
+    <button id="restart-btn" type="button">Restart Game</button>
+  </main>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
